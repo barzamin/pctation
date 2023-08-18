@@ -272,7 +272,8 @@ void Gpu::gp0_fill_rect_in_vram() {
 
   const auto pos_start = renderer::rasterizer::Position::from_gp0_fill(m_gp0_cmd[1]);
   const auto size = renderer::rasterizer::Size::from_gp0_fill(m_gp0_cmd[2]);
-  const renderer::rasterizer::Position pos_end = { pos_start.x + size.width, pos_start.y + size.height };
+  const renderer::rasterizer::Position pos_end = { static_cast<s16>(pos_start.x + size.width),
+                                                   static_cast<s16>(pos_start.y + size.height) };
 
   for (auto i_x = pos_start.x; i_x < pos_end.x; ++i_x)
     for (auto i_y = pos_start.y; i_y < pos_end.y; ++i_y)

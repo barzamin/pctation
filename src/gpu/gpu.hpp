@@ -253,7 +253,7 @@ class Gpu {
   void advance_vram_transfer_pos();
   void do_cpu_to_vram_transfer(u32 cmd);
 
-public:
+ public:
   // Returns true to signals that a frame is ready for presenting (VBLANK)
   bool step(u32 cycles_to_emualate);
 

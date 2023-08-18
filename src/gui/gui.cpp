@@ -41,12 +41,13 @@ const auto GUI_TABLE_COLUMN_ROWS_OTHER_COL = IM_COL32(150, 150, 150, 255);
 
 #define SDL_ERROR(msg)                                                      \
   do {                                                                      \
-    LOG_ERROR(msg##": {}", SDL_GetError());                                 \
+    LOG_ERROR(msg ": {}", SDL_GetError());                                  \
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", msg, m_window); \
     throw std::runtime_error(#msg);                                         \
   } while (0);
 
 // Use a discrete GPU if available
+#ifdef _MSC_VER
 extern "C" {
 // http://developer.download.nvidia.com/devzone/devcenter/gamegraphics/files/OptimusRenderingPolicies.pdf
 __declspec(dllexport) uint32_t NvOptimusEnablement = 1;
@@ -54,6 +55,7 @@ __declspec(dllexport) uint32_t NvOptimusEnablement = 1;
 // https://gpuopen.com/amdpowerxpressrequesthighperformance/
 __declspec(dllexport) uint32_t AmdPowerXpressRequestHighPerformance = 1;
 }
+#endif
 
 namespace gui {
 
@@ -71,7 +73,7 @@ void init_theme() {
   style.Colors[ImGuiCol_Text] = TXT(0.78f);
   style.Colors[ImGuiCol_TextDisabled] = TXT(0.28f);
   style.Colors[ImGuiCol_WindowBg] = ImVec4(0.13f, 0.14f, 0.17f, 1.00f);
-  style.Colors[ImGuiCol_ChildWindowBg] = BG(0.58f);
+  style.Colors[ImGuiCol_ChildBg] = BG(0.58f);
   style.Colors[ImGuiCol_PopupBg] = BG(0.9f);
   style.Colors[ImGuiCol_Border] = ImVec4(0.31f, 0.31f, 1.00f, 0.00f);
   style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
@@ -95,9 +97,9 @@ void init_theme() {
   style.Colors[ImGuiCol_Header] = MED(0.76f);
   style.Colors[ImGuiCol_HeaderHovered] = MED(0.86f);
   style.Colors[ImGuiCol_HeaderActive] = HI(1.00f);
-  style.Colors[ImGuiCol_Column] = ImVec4(0.14f, 0.16f, 0.19f, 1.00f);
-  style.Colors[ImGuiCol_ColumnHovered] = MED(0.78f);
-  style.Colors[ImGuiCol_ColumnActive] = MED(1.00f);
+  style.Colors[ImGuiCol_Separator] = ImVec4(0.14f, 0.16f, 0.19f, 1.00f);
+  style.Colors[ImGuiCol_SeparatorHovered] = MED(0.78f);
+  style.Colors[ImGuiCol_SeparatorActive] = MED(1.00f);
   style.Colors[ImGuiCol_ResizeGrip] = ImVec4(0.47f, 0.77f, 0.83f, 0.04f);
   style.Colors[ImGuiCol_ResizeGripHovered] = MED(0.78f);
   style.Colors[ImGuiCol_ResizeGripActive] = MED(1.00f);
@@ -106,7 +108,7 @@ void init_theme() {
   style.Colors[ImGuiCol_PlotHistogram] = TXT(0.63f);
   style.Colors[ImGuiCol_PlotHistogramHovered] = MED(1.00f);
   style.Colors[ImGuiCol_TextSelectedBg] = MED(0.43f);
-  style.Colors[ImGuiCol_ModalWindowDarkening] = BG(0.73f);
+  style.Colors[ImGuiCol_ModalWindowDimBg] = BG(0.73f);
 
   style.WindowPadding = ImVec2(6, 4);
   style.WindowRounding = 0.0f;
@@ -133,7 +135,7 @@ void Gui::init() {
     SDL_ERROR("Unable to initialize SDL");
 
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -398,7 +400,7 @@ void Gui::imgui_draw(const emulator::Emulator& emulator) {
         ImGui::Text("View ");
         ImGui::SameLine();
         ImGui::Combo("##screen_view", (s32*)&m_settings->screen_view, items_screen_view,
-                     ARRAYSIZE(items_screen_view));
+                     IM_ARRAYSIZE(items_screen_view));
         m_settings->window_size_changed = (screen_view_old != m_settings->screen_view);
 
         // Screen scale
@@ -407,7 +409,7 @@ void Gui::imgui_draw(const emulator::Emulator& emulator) {
         ImGui::Text("Scale");
         ImGui::SameLine();
         ImGui::Combo("##screen_scale", (s32*)&m_settings->screen_scale, items_screen_scale,
-                     ARRAYSIZE(items_screen_scale));
+                     IM_ARRAYSIZE(items_screen_scale));
         if (!m_settings->window_size_changed)
           m_settings->window_size_changed = (screen_scale_old != m_settings->screen_scale);
 
@@ -475,7 +477,7 @@ void Gui::draw_window_log(const char* title,
   ImGui::TextUnformatted(text_contents);
 
   if (should_autoscroll)
-    ImGui::SetScrollHere(1.0f);
+    ImGui::SetScrollHereY(1.0f);
   ImGui::EndChild();
 
   ImGui::End();
@@ -573,7 +575,7 @@ bool Gui::draw_window_cdrom_select(std::string& cdrom_path) const {
           const auto dir_path_2 = dir_iter_2.path().string();
           const auto rel_dir_path = dir_path_2.substr(sizeof(CDROM_PATH) + dir_path.size() + 1);
 
-          ImGui::TreePush();
+          ImGui::TreePush(dir_path.c_str());
           ImGui::PushStyleColor(ImGuiCol_Text, TXT(0.62f));
           if (ImGui::Selectable(rel_dir_path.c_str())) {
             if (search_for_ext(dir_iter_2, { ".bin", ".img", ".iso" }, false)) {  // todo: ".cue"
@@ -633,7 +635,7 @@ void Gui::draw_window_gp0_commands(const gpu::Gpu& gpu) {
         ImGui::ColorEdit3("", col,
                           ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoInputs |
                               ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoOptions |
-                              ImGuiColorEditFlags_NoDragDrop | ImGuiColorEditFlags_RGB);
+                              ImGuiColorEditFlags_NoDragDrop | ImGuiColorEditFlags_DisplayRGB);
         ImGui::SameLine();
       }
       ImGui::NewLine();
@@ -765,7 +767,7 @@ void Gui::draw_window_gp0_commands(const gpu::Gpu& gpu) {
 
           const auto cmd_string = fmt::format("Command #{}: {}", cmd_i, cmd_string_title);
 
-          if (ImGui::TreeNode(cmd_id.c_str(), cmd_string.c_str())) {
+          if (ImGui::TreeNode(cmd_id.c_str(), "%s", cmd_string.c_str())) {
             switch (cmd_type) {
               case gpu::Gp0CommandType::DrawLine: break;
               case gpu::Gp0CommandType::DrawRectangle: {
@@ -841,6 +843,9 @@ void Gui::draw_window_gp0_commands(const gpu::Gpu& gpu) {
               case gpu::Gp0CommandType::CopyCpuToVram: break;
               case gpu::Gp0CommandType::CopyCpuToVramTransferring: break;
               case gpu::Gp0CommandType::CopyVramToCpu: break;
+              case gpu::Gp0CommandType::CopyVramToVram: break;  // todo?
+              case gpu::Gp0CommandType::None: break;            // todo?
+              case gpu::Gp0CommandType::Invalid: break;         // todo?
             }
 
             ImGui::TreePop();
@@ -900,23 +905,23 @@ void Gui::draw_window_timers(const io::Timers& timers) {
 
         // Second column: Values
         auto sync_en = static_cast<bool>(mode.sync_enable);
-        ImGui::Checkbox("", &sync_en);
+        ImGui::Checkbox("##sync_en", &sync_en);
         ImGui::Text("%d", mode.sync_mode);  // TODO: prettify
         auto reset_on_target = static_cast<bool>(mode.reset_on_target);
-        ImGui::Checkbox("", &reset_on_target);
+        ImGui::Checkbox("##reset_on_target", &reset_on_target);
         auto irq_on_target = static_cast<bool>(mode.irq_on_target);
-        ImGui::Checkbox("", &irq_on_target);
+        ImGui::Checkbox("##irq_on_target", &irq_on_target);
         auto irq_on_max = static_cast<bool>(mode.irq_on_max);
-        ImGui::Checkbox("", &irq_on_max);
+        ImGui::Checkbox("##irq_on_max", &irq_on_max);
         ImGui::Text(mode._irq_repeat_mode ? "Repeat" : "One-shot");
         ImGui::Text(mode._irq_toggle_mode ? "Pulse" : "Toggle");
         ImGui::Text("%d", mode.clock_source);  // TODO: prettify
         auto irq = !mode.irq_not;              // Invert
-        ImGui::Checkbox("", &irq);
+        ImGui::Checkbox("##irq", &irq);
         auto reached_target = static_cast<bool>(mode.reached_target);
-        ImGui::Checkbox("", &reached_target);
+        ImGui::Checkbox("##reached_target", &reached_target);
         auto reached_max = static_cast<bool>(mode.reached_max);
-        ImGui::Checkbox("", &reached_max);
+        ImGui::Checkbox("##reached_max", &reached_max);
 
         ImGui::PopStyleVar();  // Pop frame padding change
 
@@ -934,7 +939,8 @@ void Gui::draw_window_ram(const std::array<byte, RamSize>& ram_data) {
   // Window style
   ImGui::SetNextWindowSize(ImVec2(500, 411), ImGuiCond_FirstUseEver);
 
-  m_ram_memeditor.DrawWindow("RAM Contents", (MemoryEditor::u8*)ram_data.data(), RamSize, 0);
+  // HACK: casting off const qualifier
+  m_ram_memeditor.DrawWindow("RAM Contents", (void*)(ram_data.data()), RamSize, 0);
 }
 
 struct RegisterTableEntry {
@@ -955,7 +961,7 @@ static void draw_register_table(const char* title, const RegisterTableEntries ro
   const size_t column_count = IM_ARRAYSIZE(header_titles);
   float column_max_chars[] = { 8, 22, 8 };
 
-  ImGui::BulletText(title);
+  ImGui::BulletText("%s", title);
 
   ImGui::SetNextWindowSize(ImVec2(0, 0));
   ImGui::SetNextWindowContentSize(ImVec2(REG_TABLE_WIDTH, 0.0f));
@@ -980,16 +986,16 @@ static void draw_register_table(const char* title, const RegisterTableEntries ro
     ImGui::PushStyleColor(ImGuiCol_Text, GUI_TABLE_COLUMN_ROWS_NAME_COL);
 
     for (auto row : rows) {
-      snprintf(text, sizeof text, "%s", row.bits);
+      snprintf(text, sizeof(text), "%s", row.bits);
       ImGui::Selectable(text);
       ImGui::NextColumn();
 
-      snprintf(text, sizeof text, "%s", row.description);
+      snprintf(text, sizeof(text), "%s", row.description);
       ImGui::Selectable(text);
       ImGui::NextColumn();
 
       ImGui::PushStyleColor(ImGuiCol_Text, GUI_TABLE_COLUMN_ROWS_OTHER_COL);
-      snprintf(text, sizeof text, "%s", row.value.c_str());
+      snprintf(text, sizeof(text), "%s", row.value.c_str());
       ImGui::Selectable(text);
       ImGui::NextColumn();
       ImGui::PopStyleColor();
@@ -1107,6 +1113,7 @@ void Gui::draw_window_cpu_registers(const cpu::Cpu& cpu) {
     ImGui::Text("pc: %08X", cpu.m_pc_current);
     ImGui::Text("ra: %08X", cpu.gpr(31));
 
+    // todo: weird braced initializer
     if (ImGui::CollapsingHeader("Show All", { true })) {
       auto print_reg = [&cpu](u32 reg_idx) {
         ImGui::Text("%s: %08X", cpu::register_to_str(reg_idx), cpu.gpr(reg_idx));

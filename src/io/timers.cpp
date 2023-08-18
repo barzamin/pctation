@@ -12,9 +12,9 @@ void Timers::init(cpu::Interrupts* interrupts) {
 }
 
 void Timers::step(u32 cycles) {
-  const u16 timer_increment[3] = { source0() ? cycles : cycles,  // TODO
-                                   source1() ? cycles : cycles,  // TODO
-                                   source2() ? cycles / 8 : cycles };
+  const u16 timer_increment[3] = { static_cast<u16>(source0() ? cycles : cycles),  // TODO
+                                   static_cast<u16>(source1() ? cycles : cycles),  // TODO
+                                   static_cast<u16>(source2() ? cycles / 8 : cycles) };
 
   for (auto i = Timer0; i < TimerMax; i = (TimerIndex)((u16)i + 1)) {
     if (m_timer_paused[i])

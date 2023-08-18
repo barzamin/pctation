@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+    "name": "pctation",
+    "version": "0.1",
+    "dependencies": [
+        "fmt",
+        "spdlog",
+        "gsl-lite",
+        "sdl2",
+        "imgui",
+        "glbinding",
+        "glm"
+    ]
+}

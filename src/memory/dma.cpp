@@ -79,9 +79,7 @@ void Dma::do_block_transfer(DmaPort port) {
               // Each of the rest of the entries points to the previous one
               src_word = (addr - 4) & RAM_ADDR_MASK;
             break;
-          case DmaPort::Gpu:
-            src_word = m_gpu.dma_read_vram();
-            break;
+          case DmaPort::Gpu: src_word = m_gpu.dma_read_vram(); break;
           case DmaPort::Cdrom: src_word = m_cdrom.read_word(); break;
           default: LOG_WARN("DMA transfer to unimplemented port {} requested", static_cast<u8>(port));
         }

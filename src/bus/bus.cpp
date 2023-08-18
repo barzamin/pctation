@@ -12,6 +12,8 @@
 #include <spu/spu.hpp>
 #include <util/log.hpp>
 
+constexpr bool lenient = true;
+
 namespace bus {
 
 // TODO: refactor IO reads/writes
@@ -41,8 +43,12 @@ u32 Bus::read32(u32 addr) const {
   if (memory::map::EXPANSION_1.contains(addr, addr_rebased))
     return m_expansion.read<u32>(addr_rebased);
 
-  LOG_ERROR("Unknown 32-bit read at 0x{:08X}", addr);
-  assert(0);
+  if (lenient) {
+    LOG_WARN("Unknown 32-bit read at 0x:{:08X} (ignoring: lenient bus)", addr);
+  } else {
+    LOG_ERROR("Unknown 32-bit read at 0x{:08X}; aborting", addr);
+    assert(0);
+  }
   return 0;
 }
 
@@ -179,8 +185,12 @@ void Bus::write32(u32 addr, u32 val) {
     return;
   }
 
-  LOG_ERROR("Unknown 32-bit write of 0x{:08X} at 0x{:08X} ", val, addr);
-  assert(0);
+  if (lenient) {
+    LOG_WARN("Unknown 32-bit write of 0x{:08X} at 0x{:08X} (ignoring: lenient bus) ", val, addr);
+  } else {
+    LOG_ERROR("Unknown 32-bit write of 0x{:08X} at 0x{:08X} ", val, addr);
+    assert(0);
+  }
 }
 
 void Bus::write16(u32 addr, u16 val) {

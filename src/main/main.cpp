@@ -10,7 +10,7 @@
 
 constexpr auto NOCASH_BIOS_2_0_PATH = "data/bios/no$psx_bios/NO$PSX_BIOS_2.0_2x.ROM";
 constexpr auto NOCASH_BIOS_1_2_PATH = "data/bios/no$psx_bios/NO$PSX_BIOS_1.2_2x.ROM";
-constexpr auto BIOS_PATH = "data/bios/SCPH1001.BIN";
+constexpr auto BIOS_PATH = "data/bios/scph1001.BIN";
 
 // Entry point
 s32 main(s32 argc, char** argv) {
@@ -28,11 +28,11 @@ s32 main(s32 argc, char** argv) {
     if (argc > 1)
       cdrom_path = argv[1];
 
-//    if (argc > 2)
-//      exe_path = argv[2];
-//
-//    if (argc > 3)
-//      bootstrap_path = argv[3];
+    //    if (argc > 2)
+    //      exe_path = argv[2];
+    //
+    //    if (argc > 3)
+    //      bootstrap_path = argv[3];
 
     gui.init();
 

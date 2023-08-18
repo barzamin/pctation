@@ -42,7 +42,9 @@ struct Position {
     return { bit_utils::sign_extend<10, s16>((s16)cmd & 0x7FF),
              bit_utils::sign_extend<10, s16>((s16)(cmd >> 16) & 0x7FF) };
   }
-  static Position from_gp0_fill(u32 cmd) { return { (s16)cmd & 0x3F0, (s16)(cmd >> 16) & 0x1FF }; }
+  static Position from_gp0_fill(u32 cmd) {
+    return { static_cast<s16>(cmd & 0x3F0), static_cast<s16>((cmd >> 16) & 0x1FF) };
+  }
   static Position3 from_gp0(u32 cmd, u32 cmd2, u32 cmd3) {
     return { from_gp0(cmd), from_gp0(cmd2), from_gp0(cmd3) };
   }
@@ -51,7 +53,7 @@ struct Position {
   }
   Position operator+(const Position& rhs) const {
     // TODO: sign extend?
-    return { x + rhs.x, y + rhs.y };
+    return { static_cast<s16>(x + rhs.x), static_cast<s16>(y + rhs.y) };
   }
 };
 
@@ -64,7 +66,8 @@ struct Size {
              bit_utils::sign_extend<10, s16>((s16)(cmd >> 16) & 0x3FF) };
   }
   static Size from_gp0_fill(u32 cmd) {
-    return { (((s16)cmd & 0x3FF) + 0x0F) & ~0x0F, (s16)(cmd >> 16) & 0x1FF };
+    return { static_cast<s16>((static_cast<s16>(cmd & 0x3FF) + 0x0f) & ~0x0f),
+             static_cast<s16>((cmd >> 16) & 0x1ff) };
   }
 };
 
@@ -73,7 +76,9 @@ struct Color {
   u8 g;
   u8 b;
 
-  static Color from_gp0(u32 cmd) { return { (u8)cmd, (u8)(cmd >> 8), (u8)(cmd >> 16) }; }
+  static Color from_gp0(u32 cmd) {
+    return { static_cast<u8>(cmd), static_cast<u8>(cmd >> 8), static_cast<u8>(cmd >> 16) };
+  }
   static Color3 from_gp0(u32 cmd, u32 cmd2, u32 cmd3) {
     return { from_gp0(cmd), from_gp0(cmd2), from_gp0(cmd3) };
   }
@@ -94,7 +99,7 @@ struct Texcoord {
   }
   Texcoord operator+(const Texcoord& rhs) const {
     // TODO: sign extend?
-    return { x + rhs.x, y + rhs.y };
+    return { static_cast<s16>(x + rhs.x), static_cast<s16>(y + rhs.y) };
   }
 };
 
